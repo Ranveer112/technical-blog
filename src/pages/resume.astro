@@ -14,7 +14,12 @@ import { AUTHOR } from '../consts';
   </p>
 
   <div class="pdf-frame">
-    <iframe src="/resume.pdf#view=FitH&navpanes=0&toolbar=1" title="Ranveer Randhawa resume"></iframe>
+    <object data="/resume.pdf" type="application/pdf" title="Ranveer Randhawa resume">
+      <p>
+        Your browser can't show PDFs inline.
+        <a href="/resume.pdf">Download the resume instead</a>.
+      </p>
+    </object>
   </div>
 </BaseLayout>
 
@@ -27,7 +32,7 @@ import { AUTHOR } from '../consts';
     height: 85vh;
     min-height: 700px;
   }
-  iframe {
+  object {
     width: 100%;
     height: 100%;
     border: 0;
