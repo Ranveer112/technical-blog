@@ -1,68 +1,26 @@
 # technical-blog
 
-A fast, Git-based technical blog built with **Astro** and deployed on
-**Cloudflare Pages**. Ownership, low cost, speed, and a professional
-engineering footprint.
+A fast, Git-based technical blog built with **Astro 7** and deployed on **Cloudflare Pages**.
 
 ```
-You → write Markdown → GitHub → Cloudflare Pages → yourdomain.com
+Markdown → GitHub → Cloudflare Pages → yourdomain.com
 ```
 
-## Stack
+## Architecture
 
-| Layer          | Choice                    | Cost         |
-| -------------- | ------------------------- | ------------ |
-| Blog engine    | Astro 5                   | $0           |
-| Content        | Markdown / MDX in Git     | $0           |
-| Version control| GitHub                    | $0           |
-| Hosting/CI     | Cloudflare Pages          | $0           |
-| Domain         | Cloudflare Registrar      | ~$10–20/yr   |
+- **Astro** generates static HTML from Markdown and components.
+- **Content collections** validate post frontmatter at build time.
+- **GitHub** stores the source and triggers deployments.
+- **Cloudflare Pages** builds the site on every push and serves it.
 
-## Local development
-
-Requirements: Node.js LTS, Git, VS Code.
-
-```bash
-npm install
-npm run dev        # http://localhost:4321
-npm run build      # production build to ./dist
-npm run preview    # preview the production build
-```
-
-## Project structure
-
-```
-src/
-├── consts.ts                 # ← EDIT THIS: name, bio, socials, categories, nav
-├── content.config.ts         # content collection schemas (frontmatter validation)
-├── content/
-│   ├── blog/                 # your articles (.md / .mdx)
-│   └── projects/             # your projects (.md / .mdx)
-├── components/               # Header, Footer, PostCard, BaseHead (SEO), ...
-├── layouts/                  # BaseLayout, BlogPost
-├── pages/                    # routes: /, /blog, /projects, /about, tags, categories
-│   ├── rss.xml.js            # RSS feed
-│   └── robots.txt.ts         # robots.txt
-public/                       # static assets: favicon, avatar, OG image, _headers
-```
-
-## Make it yours
-
-1. **Identity** — edit `src/consts.ts` (name, positioning statement, bio,
-   social links, categories).
-2. **Domain** — set `site` in `astro.config.mjs` to your real URL.
-3. **Avatar / OG image** — replace `public/avatar.svg` and `public/og-default.svg`.
-4. **About page** — rewrite `src/pages/about.astro` with your real background.
-5. **Projects** — add files to `src/content/projects/`.
-
-## Writing an article
+## Write a blog post
 
 Create `src/content/blog/my-post.md`:
 
 ```md
 ---
-title: "Building a Distributed Rate Limiter"
-description: "Design decisions behind..."
+title: "Your Post Title"
+description: "One or two sentences for SEO and preview cards."
 date: 2026-07-11
 category: "Systems"        # must match a category in src/consts.ts
 tags:
@@ -81,65 +39,36 @@ draft: false               # true = hidden from the site
 ...
 ```
 
-The filename is the URL slug. Frontmatter is validated at build time — an
-invalid `category` fails the build on purpose.
+The filename becomes the URL slug. Invalid frontmatter fails the build.
 
-## Deploy
-
-### 1. Push to GitHub
+## Publish
 
 ```bash
-git init
+npm run build     # optional: check locally
+npm run dev       # optional: preview at http://localhost:4321
+
 git add .
-git commit -m "Initial blog"
-git branch -M main
-git remote add origin YOUR_REPOSITORY_URL
-git push -u origin main
+git commit -m "post: your title"
+git push
 ```
 
-### 2. Connect Cloudflare Pages
+Cloudflare Pages auto-deploys on every push to `main`.
 
-Cloudflare Dashboard → **Workers & Pages** → **Create** → **Pages** →
-**Connect to Git** → select your repo.
+## Configuration
 
-Build settings:
+- **Identity:** `src/consts.ts` (name, bio, social links, categories, nav).
+- **Domain:** `astro.config.mjs` (update `site` when you connect a custom domain).
+- **Avatar:** `public/avatar.svg` (replace with your photo).
 
-| Setting            | Value           |
-| ------------------ | --------------- |
-| Framework preset   | Astro           |
-| Build command      | `npm run build` |
-| Build output dir   | `dist`          |
+## Repo status
 
-Deploy. You get `something.pages.dev`. Every `git push` to `main`
-auto-deploys.
+Already initialized and pushed to `https://github.com/Ranveer112/technical-blog.git`.
 
-### 3. Custom domain
+## Useful commands
 
-Cloudflare Pages → your project → **Custom domains** → **Set up a domain** →
-enter `yourdomain.com`. If the domain is on Cloudflare Registrar, DNS is
-configured automatically. Then update `site` in `astro.config.mjs` and push.
-
-## SEO — included out of the box
-
-- `sitemap-index.xml` via `@astrojs/sitemap`
-- `rss.xml` feed
-- `robots.txt`
-- Per-page canonical URLs, Open Graph + Twitter cards (`BaseHead.astro`)
-
-## Analytics (optional)
-
-Privacy-friendly options:
-
-- **Cloudflare Web Analytics** — free, no cookies. Enable in the Cloudflare
-  dashboard; no code changes needed for Pages sites.
-- **Plausible** — add the script tag to `BaseHead.astro`.
-
-## Publishing cadence
-
-- **Month 1:** 4 foundational articles ("How I built X", "Understanding Y
-  internals", "Benchmarking A vs B", "Lessons from Z").
-- **Months 2–3:** 2 deep articles/month. Tutorials 1500–3000 words,
-  architecture posts 2500–5000 words.
-
-For each article: publish here (source of truth) → summarize on LinkedIn →
-cross-post to Dev.to/Hashnode → link the GitHub code.
+```bash
+npm install
+npm run dev         # local dev server
+npm run build       # production build
+npm run audit       # npm audit --audit-level=moderate
+```
