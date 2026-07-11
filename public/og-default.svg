@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <rect width="1200" height="630" fill="#0d1117"/>
+  <rect x="0" y="0" width="1200" height="8" fill="#4493f8"/>
+  <text x="80" y="300" font-family="ui-sans-serif, system-ui, sans-serif" font-size="72" font-weight="700" fill="#e6edf3">Ranveer Randhawa</text>
+  <text x="80" y="380" font-family="ui-sans-serif, system-ui, sans-serif" font-size="34" fill="#9198a1">Backend engineer focused on distributed systems and machine learning</text>
+</svg>

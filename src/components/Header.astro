@@ -1,0 +1,71 @@
+---
+import { SITE_TITLE, NAV_LINKS } from '../consts';
+const path = Astro.url.pathname;
+const isActive = (href: string) =>
+  href === '/' ? path === '/' : path.startsWith(href);
+---
+
+<header class="site-header">
+  <div class="container header-inner">
+    <a href="/" class="brand">{SITE_TITLE}</a>
+    <nav>
+      {
+        NAV_LINKS.map((link) => (
+          <a href={link.href} class:list={[{ active: isActive(link.href) }]}>
+            {link.label}
+          </a>
+        ))
+      }
+    </nav>
+  </div>
+</header>
+
+<style>
+  .site-header {
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    background: color-mix(in srgb, var(--bg) 88%, transparent);
+    backdrop-filter: blur(8px);
+    z-index: 10;
+  }
+  .header-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 60px;
+  }
+  .brand {
+    font-weight: 700;
+    font-size: 1.05rem;
+    color: var(--text);
+  }
+  .brand:hover {
+    text-decoration: none;
+    color: var(--accent);
+  }
+  nav {
+    display: flex;
+    gap: 1.25rem;
+  }
+  nav a {
+    color: var(--text-muted);
+    font-size: 0.95rem;
+  }
+  nav a:hover,
+  nav a.active {
+    color: var(--text);
+    text-decoration: none;
+  }
+  nav a.active {
+    color: var(--accent);
+  }
+  @media (max-width: 520px) {
+    nav {
+      gap: 0.9rem;
+    }
+    nav a {
+      font-size: 0.88rem;
+    }
+  }
+</style>

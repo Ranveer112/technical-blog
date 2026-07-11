@@ -1,0 +1,66 @@
+---
+import FormattedDate from './FormattedDate.astro';
+
+interface Props {
+  href: string;
+  title: string;
+  description: string;
+  date: Date;
+  category?: string;
+  tags?: string[];
+}
+
+const { href, title, description, date, category, tags = [] } = Astro.props;
+---
+
+<article class="card">
+  <div class="meta">
+    <FormattedDate date={date} />
+    {category && <span class="badge">{category}</span>}
+  </div>
+  <h3><a href={href}>{title}</a></h3>
+  <p class="muted">{description}</p>
+  {
+    tags.length > 0 && (
+      <div class="tags">
+        {tags.map((t) => (
+          <span class="tag">#{t}</span>
+        ))}
+      </div>
+    )
+  }
+</article>
+
+<style>
+  .card {
+    padding: 1.5rem 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .meta {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-bottom: 0.35rem;
+  }
+  h3 {
+    font-size: 1.25rem;
+    margin: 0.1rem 0 0.4rem;
+  }
+  h3 a {
+    color: var(--text);
+  }
+  h3 a:hover {
+    color: var(--accent);
+    text-decoration: none;
+  }
+  .card p {
+    margin: 0.4rem 0 0.8rem;
+  }
+  .tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+</style>

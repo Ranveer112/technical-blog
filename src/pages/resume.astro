@@ -1,0 +1,35 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { AUTHOR } from '../consts';
+---
+
+<BaseLayout
+  title="Resume"
+  description={`${AUTHOR.name} — backend engineer focused on distributed systems and serverless data pipelines.`}
+  wide
+>
+  <h1>Resume</h1>
+  <p class="muted">
+    If the PDF doesn't render, you can <a href="/resume.pdf">download it directly</a>.
+  </p>
+
+  <div class="pdf-frame">
+    <iframe src="/resume.pdf#view=FitH&navpanes=0&toolbar=1" title="Ranveer Randhawa resume"></iframe>
+  </div>
+</BaseLayout>
+
+<style>
+  .pdf-frame {
+    margin-top: 1rem;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    height: 85vh;
+    min-height: 700px;
+  }
+  iframe {
+    width: 100%;
+    height: 100%;
+    border: 0;
+  }
+</style>

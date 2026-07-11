@@ -1,0 +1,102 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import BaseLayout from './BaseLayout.astro';
+import FormattedDate from '../components/FormattedDate.astro';
+import { Image } from 'astro:assets';
+
+type Props = CollectionEntry<'blog'>['data'];
+
+const { title, description, date, updated, category, tags, heroImage } =
+  Astro.props;
+---
+
+<BaseLayout
+  title={title}
+  description={description}
+  type="article"
+  publishedTime={date}
+>
+  <article>
+    <div class="post-meta">
+      <FormattedDate date={date} />
+      <span class="badge">{category}</span>
+      {
+        updated && (
+          <span class="muted">
+            (updated <FormattedDate date={updated} />)
+          </span>
+        )
+      }
+    </div>
+    <h1>{title}</h1>
+    <p class="lede muted">{description}</p>
+
+    {
+      heroImage && (
+        <Image
+          src={heroImage}
+          alt={title}
+          class="hero"
+          widths={[400, 720, 1080]}
+          sizes="(max-width: 720px) 100vw, 720px"
+        />
+      )
+    }
+
+    <hr />
+
+    <div class="prose">
+      <slot />
+    </div>
+
+    {
+      tags && tags.length > 0 && (
+        <div class="tags">
+          {tags.map((t) => (
+            <a class="tag" href={`/tags/${t}`}>
+              #{t}
+            </a>
+          ))}
+        </div>
+      )
+    }
+
+    <hr />
+    <a href="/blog" class="back">&larr; All articles</a>
+  </article>
+</BaseLayout>
+
+<style>
+  .post-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    margin-bottom: 0.5rem;
+  }
+  .lede {
+    font-size: 1.15rem;
+    margin-top: 0.25rem;
+  }
+  .hero {
+    width: 100%;
+    margin-top: 1.5rem;
+    border-radius: 12px;
+  }
+  .prose :global(h2) {
+    margin-top: 2.5rem;
+  }
+  .prose :global(pre) {
+    margin: 1.25rem 0;
+  }
+  .tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-top: 2rem;
+  }
+  .back {
+    font-size: 0.95rem;
+  }
+</style>

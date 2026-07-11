@@ -1,0 +1,77 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PostCard from '../components/PostCard.astro';
+import { AUTHOR, SITE_DESCRIPTION, SOCIALS } from '../consts';
+
+const posts = (await getCollection('blog', ({ data }) => !data.draft))
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
+  .slice(0, 4);
+---
+
+<BaseLayout>
+  <section class="hero">
+    <h1>{AUTHOR.name}</h1>
+    <p class="positioning">{SITE_DESCRIPTION}</p>
+    <div class="links">
+      {
+        SOCIALS.map((s) => (
+          <a href={s.href} target="_blank" rel="me noopener">
+            {s.label}
+          </a>
+        ))
+      }
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <h2>Featured writing</h2>
+      <a href="/blog">All articles &rarr;</a>
+    </div>
+    {
+      posts.length === 0 ? (
+        <p class="muted">No articles published yet.</p>
+      ) : (
+        posts.map((post) => (
+          <PostCard
+            href={`/blog/${post.id}`}
+            title={post.data.title}
+            description={post.data.description}
+            date={post.data.date}
+            category={post.data.category}
+            tags={post.data.tags}
+          />
+        ))
+      )
+    }
+  </section>
+</BaseLayout>
+
+<style>
+  .hero {
+    padding: 3rem 0 2rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .positioning {
+    font-size: 1.25rem;
+    color: var(--text-muted);
+    max-width: 40ch;
+  }
+  .links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-top: 1rem;
+    font-size: 0.95rem;
+  }
+  .section-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-top: 3rem;
+  }
+  .section-head a {
+    font-size: 0.9rem;
+  }
+</style>

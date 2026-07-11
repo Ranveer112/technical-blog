@@ -1,0 +1,44 @@
+---
+import { getCollection } from 'astro:content';
+import type { GetStaticPaths } from 'astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PostCard from '../../components/PostCard.astro';
+import { CATEGORIES } from '../../consts';
+import { slugify } from '../../utils/slug';
+
+export const getStaticPaths = (async () => {
+  const posts = await getCollection('blog', ({ data }) => !data.draft);
+  return CATEGORIES.map((category) => ({
+    params: { category: slugify(category) },
+    props: {
+      category,
+      posts: posts
+        .filter((p) => p.data.category === category)
+        .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf()),
+    },
+  }));
+}) satisfies GetStaticPaths;
+
+const { category, posts } = Astro.props;
+---
+
+<BaseLayout title={category} description={`Articles in ${category}.`}>
+  <p class="muted"><a href="/blog">&larr; All articles</a></p>
+  <h1>{category}</h1>
+  {
+    posts.length === 0 ? (
+      <p class="muted">No articles in this category yet.</p>
+    ) : (
+      posts.map((post) => (
+        <PostCard
+          href={`/blog/${post.id}`}
+          title={post.data.title}
+          description={post.data.description}
+          date={post.data.date}
+          category={post.data.category}
+          tags={post.data.tags}
+        />
+      ))
+    )
+  }
+</BaseLayout>

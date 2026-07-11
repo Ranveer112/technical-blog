@@ -1,0 +1,49 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { AUTHOR, SOCIALS } from '../consts';
+---
+
+<BaseLayout title="About" description={AUTHOR.bio}>
+  <h1>About</h1>
+  <p class="lede muted">{AUTHOR.bio}</p>
+
+  <h2>Background</h2>
+  <p>
+    Backend engineer focused on distributed systems and serverless data pipelines.
+    Currently at Slate Auto, building the marketplace for a no-frill, customizable,
+    affordable electric truck. Previously at Grant Street Group, making software
+    that makes property taxes in California simpler.
+  </p>
+  <p>
+    I tinker with ML on the side, am in active pursuit of a thesis topic, and
+    am pursuing a master's in ML.
+  </p>
+
+  <h2>Resume</h2>
+  <p>
+    <a href="/resume">View my resume</a>
+  </p>
+
+  <h2>Contact</h2>
+  <p>
+    Email me at <a href={`mailto:${AUTHOR.email}`}>{AUTHOR.email}</a>, or find me
+    online:
+  </p>
+  <ul>
+    {
+      SOCIALS.map((s) => (
+        <li>
+          <a href={s.href} target="_blank" rel="me noopener">
+            {s.label}
+          </a>
+        </li>
+      ))
+    }
+  </ul>
+</BaseLayout>
+
+<style>
+  .lede {
+    font-size: 1.15rem;
+  }
+</style>

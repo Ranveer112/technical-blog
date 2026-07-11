@@ -1,0 +1,67 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PostCard from '../../components/PostCard.astro';
+import { CATEGORIES } from '../../consts';
+import { slugify } from '../../utils/slug';
+
+const posts = (await getCollection('blog', ({ data }) => !data.draft)).sort(
+  (a, b) => b.data.date.valueOf() - a.data.date.valueOf(),
+);
+
+// Group counts per category for the filter row
+const counts = CATEGORIES.map((c) => ({
+  name: c,
+  count: posts.filter((p) => p.data.category === c).length,
+}));
+---
+
+<BaseLayout title="Blog" description="Articles on systems, ML, and engineering.">
+  <h1>Writing</h1>
+  <p class="muted">
+    Deep dives on distributed systems, ML infrastructure, and the craft of
+    software.
+  </p>
+
+  <div class="filters">
+    {
+      counts
+        .filter((c) => c.count > 0)
+        .map((c) => (
+          <a class="badge" href={`/categories/${slugify(c.name)}`}>
+            {c.name} ({c.count})
+          </a>
+        ))
+    }
+  </div>
+
+  {
+    posts.length === 0 ? (
+      <p class="muted">No articles yet — your first post lives in <code>src/content/blog/</code>.</p>
+    ) : (
+      posts.map((post) => (
+        <PostCard
+          href={`/blog/${post.id}`}
+          title={post.data.title}
+          description={post.data.description}
+          date={post.data.date}
+          category={post.data.category}
+          tags={post.data.tags}
+        />
+      ))
+    )
+  }
+</BaseLayout>
+
+<style>
+  .filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin: 1.5rem 0;
+  }
+  .filters a:hover {
+    text-decoration: none;
+    color: var(--text);
+  }
+</style>
