@@ -60,10 +60,6 @@ Cloudflare Pages auto-deploys on every push to `main`.
 - **Domain:** `astro.config.mjs` (update `site` when you connect a custom domain).
 - **Avatar:** `public/avatar.svg` (replace with your photo).
 
-## Repo status
-
-Already initialized and pushed to `https://github.com/Ranveer112/technical-blog.git`.
-
 ## Useful commands
 
 ```bash
