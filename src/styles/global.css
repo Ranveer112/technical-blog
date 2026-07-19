@@ -118,10 +118,9 @@ code {
 }
 
 pre {
-  background: var(--code-bg) !important;
   padding: 1rem 1.25rem;
   border-radius: 10px;
-  border: 1px solid var(--border);
+  border: 1px solid #2d333b;
   overflow-x: auto;
   font-size: 0.9rem;
   line-height: 1.6;
