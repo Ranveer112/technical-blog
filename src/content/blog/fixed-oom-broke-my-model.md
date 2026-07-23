@@ -51,26 +51,30 @@ Training ran on Kaggle's **2× T4** GPUs — 16 GB of memory each.
 
 ## Bug 1: the fix that caused the real bug
 
-After fixing bugs, my model finally started to train but before any diagnostic from first batch came in, Kaggle threw an out of memory on me, I eventually got it singled out to unbounded vocabulary size.
+After fixing bugs, my model finally started to train, but before any diagnostic from the first batch came in, Kaggle threw an out-of-memory error on me. I eventually singled it out to unbounded vocabulary size.
 
-Essentially, I was using **word-level** tokenization, so every distinct word in the corpus became its own token — the vocabulary ballooned into the tens of thousands. The output layer materializes one logit per vocab entry per position, so the logits tensor alone is:
+Essentially, I was using **word-level** tokenization, so every distinct word in the corpus became its own token — the vocabulary grew into the tens of thousands. The output layer materializes one logit per vocab entry per position, so the logits tensor alone is:
 
+```text
+logit bytes = batch_size × sequence_length × vocab_size × 4 bytes (fp32)
+
+At V = 300:
+= 1000 × 254 × 300 × 4 bytes
+= 304,800,000 bytes
+≈ 305 MB
 ```
-batch_size × sequence_length × vocab_size × 4 bytes (fp32)
-= 1000 × 254 × V × 4
-```
 
-At `V = 300` that is already ~0.3 GB *just for the logits* — and the softmax probabilities plus backward-pass gradients roughly triple it. Scale `V` into the tens of thousands and the tensor grows linearly into the tens of gigabytes, sailing straight past the 16 GB ceiling.
+That is ~305 MB *just for the logits* — and the softmax probabilities plus backward-pass gradients roughly triple it. Scale `V` into the tens of thousands and the byte count grows linearly into the tens of gigabytes, sailing straight past the 16 GB ceiling.
 
 Seeing this, I capped the vocabulary size to just the 300 most common tokens and mapped every other word to `<unk>`.
 
 
-## Why the loss lied to me
+## Why V=300 ended up being a disaster
 
 The model did train. When I checked back in the morning the test accuracy and loss were **13.39%** and **3.7093** respectively. Excited to see the toddler give me parenting advice, I threw in the prompt *"How to raise"* at temperature `0.1` and got back `<unk>`. Raising the temperature to `0.7` mixed in tokens like `the`, but the output was still predominantly `<unk>`.
 
 
-I realized the bound of 300 might be too harsh — most tokens were now `<unk>`. So I averaged the model's output probabilities over 10 test batches and laid them side by side with the corpus token frequencies. They don't just correlate — **all 20 of the top-20 tokens appear in the exact same rank order (a 20/20 match)**, and the magnitudes line up to within a few hundredths of a percent:
+I realized the bound of 300 might be too harsh — most tokens were now `<unk>`. So I averaged the model's output probabilities over 10 test batches and laid them side by side with the corpus token frequencies. The model had not learned any Q&A structure; it had simply **memorized the unigram distribution** of the corpus. They don't just correlate — **all 20 of the top-20 tokens appear in the exact same rank order (a 20/20 match)**, and the magnitudes line up to within a few hundredths of a percent:
 
 <figure style="margin:1.75rem 0;"><svg viewBox="0 0 640 300" width="100%" role="img" aria-label="Model averaged confidence vs corpus token frequency" style="display:block;font-family:var(--font-sans);font-size:10px;"><rect x="48" y="6" width="12" height="12" style="fill:var(--accent)"/><text x="64" y="16" style="fill:var(--text-muted)">Model avg confidence (test)</text><rect x="258" y="6" width="12" height="12" style="fill:#e8703a"/><text x="274" y="16" style="fill:var(--text-muted)">Corpus token frequency</text><line x1="44" y1="270" x2="632" y2="270" style="stroke:var(--border)"/><line x1="44" y1="216.5" x2="632" y2="216.5" style="stroke:var(--border);opacity:0.5"/><text x="38" y="219.5" text-anchor="end" style="fill:var(--text-muted)">5</text><line x1="44" y1="163" x2="632" y2="163" style="stroke:var(--border);opacity:0.5"/><text x="38" y="166" text-anchor="end" style="fill:var(--text-muted)">10</text><line x1="44" y1="109.5" x2="632" y2="109.5" style="stroke:var(--border);opacity:0.5"/><text x="38" y="112.5" text-anchor="end" style="fill:var(--text-muted)">15</text><line x1="44" y1="56" x2="632" y2="56" style="stroke:var(--border);opacity:0.5"/><text x="38" y="59" text-anchor="end" style="fill:var(--text-muted)">20</text><text x="38" y="273" text-anchor="end" style="fill:var(--text-muted)">0</text><rect x="55.7" y="32.5" width="15" height="237.5" style="fill:var(--accent)"/><rect x="73.7" y="31.5" width="15" height="238.5" style="fill:#e8703a"/><rect x="104.0" y="221.8" width="15" height="48.2" style="fill:var(--accent)"/><rect x="122.0" y="222.0" width="15" height="48.0" style="fill:#e8703a"/><rect x="152.3" y="221.8" width="15" height="48.2" style="fill:var(--accent)"/><rect x="170.3" y="222.0" width="15" height="48.0" style="fill:#e8703a"/><rect x="200.7" y="229.3" width="15" height="40.7" style="fill:var(--accent)"/><rect x="218.7" y="229.7" width="15" height="40.3" style="fill:#e8703a"/><rect x="249.0" y="237.9" width="15" height="32.1" style="fill:var(--accent)"/><rect x="267.0" y="238.1" width="15" height="31.9" style="fill:#e8703a"/><rect x="297.3" y="241.1" width="15" height="28.9" style="fill:var(--accent)"/><rect x="315.3" y="241.2" width="15" height="28.8" style="fill:#e8703a"/><rect x="345.7" y="241.1" width="15" height="28.9" style="fill:var(--accent)"/><rect x="363.7" y="241.8" width="15" height="28.2" style="fill:#e8703a"/><rect x="394.0" y="243.2" width="15" height="26.8" style="fill:var(--accent)"/><rect x="412.0" y="243.4" width="15" height="26.6" style="fill:#e8703a"/><rect x="442.3" y="246.5" width="15" height="23.5" style="fill:var(--accent)"/><rect x="460.3" y="246.0" width="15" height="24.0" style="fill:#e8703a"/><rect x="490.7" y="249.7" width="15" height="20.3" style="fill:var(--accent)"/><rect x="508.7" y="249.6" width="15" height="20.4" style="fill:#e8703a"/><rect x="539.0" y="250.7" width="15" height="19.3" style="fill:var(--accent)"/><rect x="557.0" y="250.3" width="15" height="19.7" style="fill:#e8703a"/><rect x="587.3" y="252.9" width="15" height="17.1" style="fill:var(--accent)"/><rect x="605.3" y="252.8" width="15" height="17.2" style="fill:#e8703a"/><text x="72.2" y="284" text-anchor="middle" style="fill:var(--text)">&lt;unk&gt;</text><text x="120.5" y="284" text-anchor="middle" style="fill:var(--text)">&gt;</text><text x="168.8" y="284" text-anchor="middle" style="fill:var(--text)">&lt;</text><text x="217.2" y="284" text-anchor="middle" style="fill:var(--text)">.</text><text x="265.5" y="284" text-anchor="middle" style="fill:var(--text)">,</text><text x="313.8" y="284" text-anchor="middle" style="fill:var(--text)">p</text><text x="362.2" y="284" text-anchor="middle" style="fill:var(--text)">/</text><text x="410.5" y="284" text-anchor="middle" style="fill:var(--text)">to</text><text x="458.8" y="284" text-anchor="middle" style="fill:var(--text)">the</text><text x="507.2" y="284" text-anchor="middle" style="fill:var(--text)">a</text><text x="555.5" y="284" text-anchor="middle" style="fill:var(--text)">and</text><text x="603.8" y="284" text-anchor="middle" style="fill:var(--text)">&#39;</text></svg><figcaption style="text-align:center;font-size:0.85rem;color:var(--text-muted);margin-top:0.5rem;">Model's averaged output probability on test batches (blue) vs. corpus token frequency (orange), top 12 tokens; y-axis in %. The pairs are nearly indistinguishable — across the full top-20 the rank order matches 1:1. The model simply reproduced the unigram distribution.</figcaption></figure>
 
@@ -111,11 +115,11 @@ Linear(1, 200) biases:            200 =     200
 Actual FFN:                          601
 ```
 
-So the correct FFN should have been roughly **321,000 parameters** (`200 → 800 → 200` plus biases); mine had **601** — a **~530× cut** to the single most important sublayer. No vocabulary fix was probably going to rescue a block that can't hold more than one number of internal state.
+So the correct FFN should have been roughly **321,000 parameters** (`200 → 800 → 200` plus biases); mine had **601** — a **~530× cut** to the single most important sublayer. No vocabulary fix was probably going to rescue a block that can't hold more than a single number of internal state.
 
 ## Takeaways
 
-a) Writing models from scratch is hard and requires a lot of attention to detail, pun intended. While good exercise for learning, it's probably a bad idea for practical use.
+a) The metrics being optimized are a proxy for the model quality. Always play with your model's outputs.
+For example: 0-1 accuracy and loss of 13.39% and 3.7093 respectively on 300+ vocabulary seemed promising yet the model is useless.
 
-b) The metrics being optimized are a proxy for the model quality. Always play with your model's outputs.
-For example: 0-1 accuracy and loss of 13% and 3.793 respectively on 300+ vocabulary seemed promising yet the model is useless.
+b) I need to learn about the tradeoffs of different tokenization schemes. I will go one step further and say I should invest time learning about hyperparameter tradeoffs too.
